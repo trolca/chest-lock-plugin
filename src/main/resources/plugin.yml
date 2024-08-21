@@ -1,0 +1,11 @@
+name: ChestLockPlugin
+version: '1.0'
+main: me.trololo11.chestlockplugin.ChestLockPlugin
+api-version: '1.21'
+prefix: ChestLockPlugin
+authors: [ trololo11 ]
+commands:
+  lockchest:
+    description: "Locks a chest"
+  unlock:
+    description: "Unlocks a chest"
