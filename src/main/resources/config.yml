@@ -1,1 +1,8 @@
+use-sql: true
+host: 'localhost'
+port: '' #leave empty to use the default (1433)
+user: 'root'
+password: ''
+database-name: 'chest_lock_database'
+
 destroy-on-explosion: false

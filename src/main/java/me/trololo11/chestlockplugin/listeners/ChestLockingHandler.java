@@ -3,7 +3,7 @@ package me.trololo11.chestlockplugin.listeners;
 import me.trololo11.chestlockplugin.ChestLockPlugin;
 import me.trololo11.chestlockplugin.LockState;
 import me.trololo11.chestlockplugin.managers.ChestLockingManager;
-import me.trololo11.chestlockplugin.utils.Utils;
+import me.trololo11.chestlockplugin.utils.PluginUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -49,7 +49,7 @@ public class ChestLockingHandler implements Listener {
         if(lockState == null) return;
         if(lockState.getOwner().equals(player.getUniqueId())){
             player.sendMessage(ChatColor.RED + "This chest is locked by you!");
-            player.sendMessage(Utils.chat("&aTo modify it you have to unlock it by looking at it and typing &e/unlock"));
+            player.sendMessage(PluginUtils.chat("&aTo modify it you have to unlock it by looking at it and typing &e/unlock"));
         }else{
             player.sendMessage(ChatColor.RED + "This chest is locked!");
         }
@@ -64,8 +64,9 @@ public class ChestLockingHandler implements Listener {
         if(lockState == null) return;
         boolean explode = chestLockPlugin.pluginsProperties.getProperty("destroyOnExplosion").equalsIgnoreCase("true");
         if(explode){
-            world.setBlockData(lockState.originLocation, Material.AIR.createBlockData());
-            world.setBlockData(lockState.secondPartLocation, Material.AIR.createBlockData());
+            world.setBlockData(lockState.getOriginLocation(), Material.AIR.createBlockData());
+            if(lockState.getSecondPartLocation() != null)
+                world.setBlockData(lockState.getSecondPartLocation(), Material.AIR.createBlockData());
             chestLockingManager.removeLockState(lockState);
         }else{
             e.setCancelled(true);

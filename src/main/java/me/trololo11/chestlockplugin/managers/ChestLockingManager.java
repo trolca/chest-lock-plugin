@@ -10,8 +10,8 @@ public class ChestLockingManager {
 
     private final ArrayList<LockState> lockStates;
 
-    public ChestLockingManager(){
-        this.lockStates = new ArrayList<>();
+    public ChestLockingManager(ArrayList<LockState> lockStates){
+        this.lockStates = lockStates;
     }
 
     public void addLockState(LockState lockState){

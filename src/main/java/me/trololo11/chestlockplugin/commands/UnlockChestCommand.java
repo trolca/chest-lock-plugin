@@ -1,7 +1,9 @@
 package me.trololo11.chestlockplugin.commands;
 
+import me.trololo11.chestlockplugin.ChestLockPlugin;
 import me.trololo11.chestlockplugin.LockState;
 import me.trololo11.chestlockplugin.managers.ChestLockingManager;
+import me.trololo11.chestlockplugin.managers.DatabaseManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -11,12 +13,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 public class UnlockChestCommand implements CommandExecutor {
 
     private ChestLockingManager chestLockingManager;
+    private DatabaseManager databaseManager;
 
-    public UnlockChestCommand(ChestLockingManager chestLockingManager){
+    public UnlockChestCommand(ChestLockingManager chestLockingManager, DatabaseManager databaseManager){
         this.chestLockingManager = chestLockingManager;
+        this.databaseManager = databaseManager;
     }
 
     @Override
@@ -39,6 +46,12 @@ public class UnlockChestCommand implements CommandExecutor {
             return true;
         }
 
+        try {
+            databaseManager.removeLockState(lockState);
+        } catch (SQLException | IOException e) {
+            ChestLockPlugin.getInstance().getLogger().severe("Error while removing lock state from database");
+            return true;
+        }
         chestLockingManager.removeLockState(lockState);
         player.sendMessage(ChatColor.GREEN + "Successfully removed lock on this chest!");
 
