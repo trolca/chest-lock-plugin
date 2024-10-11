@@ -3,22 +3,23 @@ package me.trololo11.chestlockplugin;
 import me.trololo11.chestlockplugin.commands.ChestLockCommand;
 import me.trololo11.chestlockplugin.commands.UnlockChestCommand;
 import me.trololo11.chestlockplugin.listeners.ChestLockingHandler;
-import me.trololo11.chestlockplugin.managers.ChestLockingManager;
+import me.trololo11.chestlockplugin.listeners.MenuHandler;
+import me.trololo11.chestlockplugin.repositories.implementations.ChestLockingSqlManager;
 import me.trololo11.chestlockplugin.managers.DatabaseManager;
-import me.trololo11.chestlockplugin.managers.MySqlManager;
+import me.trololo11.chestlockplugin.repositories.LockStatesRepository;
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Properties;
 
 public final class ChestLockPlugin extends JavaPlugin {
 
     private static ChestLockPlugin INSTANCE;
+    private static NamespacedKey PRIVATE_KEY;
 
     @SuppressWarnings("FieldCanBeLocal")
-    private ChestLockingManager chestLockingManager;
+    private LockStatesRepository lockStatesRepository;
     private DatabaseManager databaseManager;
     public final Properties pluginsProperties = new Properties();
 
@@ -26,37 +27,42 @@ public final class ChestLockPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         ChestLockPlugin.INSTANCE = this;
+        PRIVATE_KEY = new NamespacedKey(ChestLockPlugin.INSTANCE, "chest_lock");
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
         try {
-            databaseManager = new MySqlManager();
+            databaseManager = new DatabaseManager();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        ArrayList<LockState> allLockStates;
         try {
-            allLockStates = databaseManager.getAllLockStates();
-        } catch (SQLException | IOException e) {
+            lockStatesRepository = new ChestLockingSqlManager();
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        chestLockingManager = new ChestLockingManager(allLockStates);
-
         setupProperties();
 
+        getServer().getPluginManager().registerEvents(new ChestLockingHandler(lockStatesRepository), this);
+        getServer().getPluginManager().registerEvents(new MenuHandler(), this);
 
-
-        getServer().getPluginManager().registerEvents(new ChestLockingHandler(chestLockingManager), this);
-
-        getCommand("lockchest").setExecutor(new ChestLockCommand(chestLockingManager, databaseManager));
-        getCommand("unlock").setExecutor(new UnlockChestCommand(chestLockingManager, databaseManager));
+        getCommand("lockchest").setExecutor(new ChestLockCommand(lockStatesRepository));
+        getCommand("unlock").setExecutor(new UnlockChestCommand(lockStatesRepository));
     }
 
     private void setupProperties(){
         pluginsProperties.setProperty("destroyOnExplosion", String.valueOf(getConfig().getBoolean("destroy-on-explosion")));
     }
 
-    public static ChestLockPlugin getInstance(){
+    public DatabaseManager getDatabaseManager(){
+        return databaseManager;
+    }
+
+    public static ChestLockPlugin get(){
         return ChestLockPlugin.INSTANCE;
+    }
+
+    public static NamespacedKey getPrivateKey(){
+        return PRIVATE_KEY;
     }
 }

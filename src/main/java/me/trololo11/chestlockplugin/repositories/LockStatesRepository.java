@@ -6,7 +6,6 @@ import org.bukkit.Location;
 import java.io.IOException;
 import java.sql.SQLException;
 
-
 public interface LockStatesRepository {
 
     LockState getLockState(Location chestLocation);

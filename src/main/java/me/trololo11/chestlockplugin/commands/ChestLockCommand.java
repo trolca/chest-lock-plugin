@@ -2,8 +2,7 @@ package me.trololo11.chestlockplugin.commands;
 
 import me.trololo11.chestlockplugin.ChestLockPlugin;
 import me.trololo11.chestlockplugin.LockState;
-import me.trololo11.chestlockplugin.managers.ChestLockingManager;
-import me.trololo11.chestlockplugin.managers.DatabaseManager;
+import me.trololo11.chestlockplugin.repositories.LockStatesRepository;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,12 +21,10 @@ import java.util.ArrayList;
 
 public class ChestLockCommand implements CommandExecutor {
 
-    private final ChestLockingManager chestLockingManager;
-    private DatabaseManager databaseManager;
+    private final LockStatesRepository lockStatesRepository;
 
-    public ChestLockCommand(ChestLockingManager chestLockingManager, DatabaseManager databaseManager){
-        this.chestLockingManager = chestLockingManager;
-        this.databaseManager = databaseManager;
+    public ChestLockCommand(LockStatesRepository lockStatesRepository){
+        this.lockStatesRepository = lockStatesRepository;
     }
 
     @Override
@@ -38,16 +35,20 @@ public class ChestLockCommand implements CommandExecutor {
             player.sendMessage(ChatColor.RED + "Please look at the chest you want to lock!");
             return true;
         }
+
+        if(lockStatesRepository.getLockState(block.getLocation()) != null){
+            player.sendMessage(ChatColor.RED + "This chest is already locked!");
+        }
+
         Chest chest = (Chest) block.getState();
         LockState lockState = getLockState(player, chest);
         try {
-            databaseManager.addLockState(lockState);
+            lockStatesRepository.addLockState(lockState);
         } catch (SQLException | IOException e) {
-            ChestLockPlugin.getInstance().getLogger().severe("Error while adding a lock state to the database!");
+            ChestLockPlugin.get().getLogger().severe("Error while adding a lock state to the database!");
             e.printStackTrace(System.out);
             return true;
         }
-        chestLockingManager.addLockState(lockState);
 
         player.sendMessage(ChatColor.GREEN + "Successfully locked this chest!");
 
